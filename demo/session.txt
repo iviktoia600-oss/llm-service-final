@@ -1,0 +1,31 @@
+POST /chat {"message": "Команда добавила кеш. Затем команда проверила сервис."}
+HTTP 200 {"answer": "Команда добавила кеш и проверила сервис.", "cached": false}
+  cache_miss 
+
+POST /chat {"message": "Команда добавила кеш. Затем команда проверила сервис."}
+HTTP 200 {"answer": "Команда добавила кеш и проверила сервис.", "cached": true}
+  cache_hit 
+
+POST /chat {}
+HTTP 400 {"error": "Поле message должно быть непустой строкой."}
+
+POST /chat {"message": "сбой сети"}
+HTTP 503 {"error": "Сервис временно недоступен, попробуйте позже."}
+  cache_miss 
+  provider_error ConnectionRefusedError
+  retry 0.25
+  provider_error ConnectionRefusedError
+  retry 0.5
+  provider_error ConnectionRefusedError
+  fallback ConnectionRefusedError
+
+POST /chat {"message": "таймаут"}
+HTTP 503 {"error": "Сервис временно недоступен, попробуйте позже."}
+  cache_miss 
+  provider_error TimeoutError
+  retry 0.25
+  provider_error TimeoutError
+  retry 0.5
+  provider_error TimeoutError
+  fallback TimeoutError
+
