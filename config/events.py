@@ -16,9 +16,11 @@ def configure(path):
 
 
 def event(request_id, name, **fields):
-    record = dict(time=datetime.now(timezone.utc).isoformat(),
+    level = {"fallback": logging.ERROR, "provider_error": logging.WARNING,
+             "validation_error": logging.WARNING}.get(name, logging.INFO)
+    record = dict(level=logging.getLevelName(level), time=datetime.now(timezone.utc).isoformat(),
                   request_id=request_id, event=name, **fields)
-    logger.info(json.dumps(record, ensure_ascii=False))
+    logger.log(level, json.dumps(record, ensure_ascii=False))
 
 
 @contextmanager
