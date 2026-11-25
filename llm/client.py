@@ -40,12 +40,12 @@ def fetch(settings, payload, rid, opener=None, sleep=time.sleep):
             temporary = code in (408, 429) or 500 <= code < 600
         except URLError as exc:
             cause = exc.reason
-            reason = type(cause).__name__
-            temporary = isinstance(cause, (TimeoutError, ConnectionError)) or (
+            reason = "TimeoutError" if isinstance(cause, socket.timeout) else type(cause).__name__
+            temporary = isinstance(cause, (socket.timeout, TimeoutError, ConnectionError)) or (
                 isinstance(cause, OSError) and cause.errno in (
                     socket.EAI_AGAIN, errno.ENETUNREACH, errno.EHOSTUNREACH, errno.ETIMEDOUT))
-        except (TimeoutError, ConnectionError, http.client.IncompleteRead) as exc:
-            reason = type(exc).__name__
+        except (socket.timeout, TimeoutError, ConnectionError, http.client.IncompleteRead) as exc:
+            reason = "TimeoutError" if isinstance(exc, socket.timeout) else type(exc).__name__
             temporary = True
         except (OSError, http.client.HTTPException) as exc:
             raise ProviderError(type(exc).__name__) from exc

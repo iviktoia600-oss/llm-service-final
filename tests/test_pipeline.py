@@ -28,6 +28,7 @@ def post(handler, payload):
         thread = Thread(target=handler, args=(server, ("local", 0), None))
         thread.start()
         conn = HTTPConnection("localhost", timeout=2)
+        client.settimeout(conn.timeout)
         conn.sock = client
         try:
             data = json.dumps(payload, ensure_ascii=False).encode()
@@ -99,12 +100,12 @@ class Pipeline(unittest.TestCase):
         self.assertEqual(self.opener.call_count, 3)
 
     def test_transient_http(self):
-        self.opener.side_effect = [HTTPError("url", 503, "", {}, None), success()]
+        self.opener.side_effect = [HTTPError("url", 503, "", {}, io.BytesIO()), success()]
         self.assertEqual(self.call({"message": MESSAGE})[0], 200)
         self.assertEqual(self.opener.call_count, 2)
 
     def test_permanent_http(self):
-        self.opener.side_effect = HTTPError("url", 401, "", {}, None)
+        self.opener.side_effect = HTTPError("url", 401, "", {}, io.BytesIO())
         self.assertEqual(self.call({"message": MESSAGE})[0], 503)
         self.assertEqual(self.opener.call_count, 1)
 
